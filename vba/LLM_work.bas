@@ -148,10 +148,19 @@ End Function
 ' ѕростейший экранировщик дл€ JSON-строки
 Private Function JsonEscape(ByVal s As String) As String
     s = Replace(s, "\", "\\")
-    s = Replace(s, """", "\""")
-    s = Replace(s, vbCrLf, "\n")
-    s = Replace(s, vbCr, "\n")
+    s = Replace(s, Chr(34), "\" & Chr(34))
+    s = Replace(s, vbBack, "\b")
+    s = Replace(s, vbFormFeed, "\f")
+    s = Replace(s, vbCr, "\r")
     s = Replace(s, vbLf, "\n")
+    s = Replace(s, vbTab, "\t")
+    ' ”дал€ем остальные управл€ющие символы (ASCII 0Ц31, кроме вышеперечисленных)
+    Dim i As Long
+    For i = 0 To 31
+        If InStr(s, Chr(i)) > 0 Then
+            s = Replace(s, Chr(i), "\u" & Right$("0000" & Hex(AscW(Chr(i))), 4))
+        End If
+    Next i
     JsonEscape = s
 End Function
 
