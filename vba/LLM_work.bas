@@ -14,6 +14,10 @@ Public Const REG_LLM_MODEL_ID As String = REG_ROOT & "LLM_MODEL_ID"
 Public Const REG_LLM_API_KEY As String = REG_ROOT & "LLM_API_KEY"
 Public Const REG_LLM_SYSTEM_PROMPT As String = REG_ROOT & "LLM_SYSTEM_PROMPT"
 
+' «аголовок формы
+Public Const CHAT_LLM_FORM_CAPTION = "„ат с LLM"
+
+
 
 '==== ќсновной макрос ====
 Public Sub RunLLMQuery()
@@ -72,38 +76,99 @@ Public Function CallLLM(ByVal prompt As String, ByRef answer As String) As Boole
     Dim http As Object
     Dim payload As String
     Dim responseText As String
+    Dim startTime As Single
+    Dim waitMs As Long
     
     payload = BuildJsonPayload(prompt)
     
-    Set http = CreateObject("MSXML2.XMLHTTP")
-    http.Open "POST", LLM_API_URL, False
-    
+    ' ServerXMLHTTP avoids the nested COM message-pump problem
+    ' that sync XMLHTTP has Ч no re-entry into Visio/LLM_chat events.
+    Set http = CreateObject("MSXML2.ServerXMLHTTP")
+    http.Open "POST", LLM_API_URL, True
     http.setRequestHeader "Content-Type", "application/json; charset=utf-8"
     http.setRequestHeader "Authorization", "Bearer " & LLM_API_KEY
     
+    ' Timeouts (ms): resolve, connect, send, receive
+    http.setTimeouts 10000, 10000, 30000, 120000
+    
+    ' Send payload
     http.send payload
     
+    ' Poll readyState without freezing the UI + spinner
+    Dim pollCounter As Long
+    startTime = Timer
+    Do While http.readyState <> 4
+        DoEvents
+'        Debug.Print http.responseText
+        pollCounter = pollCounter + 1
+        UpdateSpinner pollCounter
+        ' Absolute ceiling Ч 3 minutes, in case server hangs
+        If Timer - startTime > 180 Then
+            Debug.Print "CallLLM: timeout (180s)"
+            CallLLM = False
+            Exit Function
+        End If
+    Loop
+
     If http.Status <> 200 Then
-        ' ƒл€ отладки можно раскомментировать:
-        ' MsgBox http.responseText
+        Log "CallLLM: HTTP " & http.Status & " " & http.StatusText
         CallLLM = False
         Exit Function
     End If
     
+    ' Get Response
     responseText = http.responseText
-    
     answer = ExtractContentFromJson(responseText)
     
-    If answer = "" Then
-        CallLLM = False
-    Else
-        CallLLM = True
-    End If
+    CallLLM = (answer <> "")
     Exit Function
     
 ErrHandler:
     CallLLM = False
 End Function
+
+'Public Function CallLLM(ByVal prompt As String, ByRef answer As String) As Boolean
+'    On Error GoTo ErrHandler
+'
+'    Dim http As Object
+'    Dim payload As String
+'    Dim responseText As String
+'
+'    payload = BuildJsonPayload(prompt)
+'
+'    Set http = CreateObject("MSXML2.XMLHTTP")
+'    http.Open "POST", LLM_API_URL, False
+'
+'    http.setRequestHeader "Content-Type", "application/json; charset=utf-8"
+'    http.setRequestHeader "Authorization", "Bearer " & LLM_API_KEY
+'
+'    http.send payload
+'
+'    If http.Status <> 200 Then
+'        ' ƒл€ отладки можно раскомментировать:
+'        ' MsgBox http.responseText
+'        CallLLM = False
+'        Exit Function
+'    End If
+'
+'    responseText = http.responseText
+'
+'    answer = ExtractContentFromJson(responseText)
+'
+'    If answer = "" Then
+'        CallLLM = False
+'    Else
+'        CallLLM = True
+'    End If
+'    Exit Function
+'
+'ErrHandler:
+'    CallLLM = False
+'End Function
+
+
+
+
 
 ' ‘ормирование JSON-тела запроса
 'Private Function BuildJsonPayload(ByVal prompt As String) As String
@@ -234,6 +299,24 @@ Private Function JsonUnescape(ByVal s As String) As String
     s = Replace(s, "\n", vbCrLf)
     JsonUnescape = s
 End Function
+
+
+'==== Spinner indicator for LLM_chat form ====
+' Cycles the last character of the form caption through [/ \ - |]
+' each time `counter` is a multiple of couunter_step.
+Public Sub UpdateSpinner(ByVal counter As Long, Optional ByVal couunter_step As Integer = 10000)
+    Static idx As Long
+    Const chars = "/-\|/-\|"
+
+    ' Advance only on couunter_step-multiples of counter
+    If counter Mod couunter_step = 0 Then
+        idx = (idx + 1) Mod Len(chars)
+        LLM_chat.Caption = CHAT_LLM_FORM_CAPTION & Mid$(chars, idx + 1, 1)
+    End If
+End Sub
+
+
+
 
 
 
