@@ -127,46 +127,6 @@ ErrHandler:
     CallLLM = False
 End Function
 
-'Public Function CallLLM(ByVal prompt As String, ByRef answer As String) As Boolean
-'    On Error GoTo ErrHandler
-'
-'    Dim http As Object
-'    Dim payload As String
-'    Dim responseText As String
-'
-'    payload = BuildJsonPayload(prompt)
-'
-'    Set http = CreateObject("MSXML2.XMLHTTP")
-'    http.Open "POST", LLM_API_URL, False
-'
-'    http.setRequestHeader "Content-Type", "application/json; charset=utf-8"
-'    http.setRequestHeader "Authorization", "Bearer " & LLM_API_KEY
-'
-'    http.send payload
-'
-'    If http.Status <> 200 Then
-'        ' Для отладки можно раскомментировать:
-'        ' MsgBox http.responseText
-'        CallLLM = False
-'        Exit Function
-'    End If
-'
-'    responseText = http.responseText
-'
-'    answer = ExtractContentFromJson(responseText)
-'
-'    If answer = "" Then
-'        CallLLM = False
-'    Else
-'        CallLLM = True
-'    End If
-'    Exit Function
-'
-'ErrHandler:
-'    CallLLM = False
-'End Function
-
-
 
 
 
@@ -304,7 +264,7 @@ End Function
 '==== Spinner indicator for LLM_chat form ====
 ' Cycles the last character of the form caption through [/ \ - |]
 ' each time `counter` is a multiple of couunter_step.
-Public Sub UpdateSpinner(ByVal counter As Long, Optional ByVal couunter_step As Integer = 10000)
+Public Sub UpdateSpinner(ByVal counter As Long, Optional ByVal couunter_step As Integer = 1000)
     Static idx As Long
     Const chars = "/-\|/-\|"
 
