@@ -1,25 +1,25 @@
 Attribute VB_Name = "LLM_work"
 Option Explicit
 
-'==== Настройки API (переменные хранятся в реестре) ====
+'==== РќР°СЃС‚СЂРѕР№РєРё API (РїРµСЂРµРјРµРЅРЅС‹Рµ С…СЂР°РЅСЏС‚СЃСЏ РІ СЂРµРµСЃС‚СЂРµ) ====
 Public LLM_API_URL As String
 Public LLM_MODEL_ID As String
 Public LLM_API_KEY As String
 Public LLM_SYSTEM_PROMPT As String
 
-' Ключи реестра (HKCU)
+' РљР»СЋС‡Рё СЂРµРµСЃС‚СЂР° (HKCU)
 Public Const REG_ROOT As String = "HKEY_CURRENT_USER\Software\LLMWordMacro\"
 Public Const REG_LLM_API_URL As String = REG_ROOT & "LLM_API_URL"
 Public Const REG_LLM_MODEL_ID As String = REG_ROOT & "LLM_MODEL_ID"
 Public Const REG_LLM_API_KEY As String = REG_ROOT & "LLM_API_KEY"
 Public Const REG_LLM_SYSTEM_PROMPT As String = REG_ROOT & "LLM_SYSTEM_PROMPT"
 
-' Заголовок формы
-Public Const CHAT_LLM_FORM_CAPTION = "Чат с LLM"
+' Р—Р°РіРѕР»РѕРІРѕРє С„РѕСЂРјС‹
+Public Const CHAT_LLM_FORM_CAPTION = "Р§Р°С‚ СЃ LLM"
 
 
 
-'==== Основной макрос ====
+'==== РћСЃРЅРѕРІРЅРѕР№ РјР°РєСЂРѕСЃ ====
 Public Sub RunLLMQuery()
     Dim prompt As String
     Dim selText As String
@@ -27,19 +27,19 @@ Public Sub RunLLMQuery()
     Dim answer As String
     Dim ok As Boolean
     
-    ' 0. Загрузка настроек из реестра
+    ' 0. Р—Р°РіСЂСѓР·РєР° РЅР°СЃС‚СЂРѕРµРє РёР· СЂРµРµСЃС‚СЂР°
     InitLLMSettings
     If LLM_API_URL = "" Or LLM_MODEL_ID = "" Or LLM_API_KEY = "" Then
-        MsgBox "Не заданы настройки LLM (URL, MODEL, KEY). Сначала выполните ConfigureLLMSettings.", vbExclamation
+        MsgBox "РќРµ Р·Р°РґР°РЅС‹ РЅР°СЃС‚СЂРѕР№РєРё LLM (URL, MODEL, KEY). РЎРЅР°С‡Р°Р»Р° РІС‹РїРѕР»РЅРёС‚Рµ ConfigureLLMSettings.", vbExclamation
         ConfigureLLMSettings
 '        Exit Sub
     End If
     
-    ' 1. Диалог ввода запроса
-    prompt = InputBox("Введите запрос для LLM:", "LLM чат-бот")
+    ' 1. Р”РёР°Р»РѕРі РІРІРѕРґР° Р·Р°РїСЂРѕСЃР°
+    prompt = InputBox("Р’РІРµРґРёС‚Рµ Р·Р°РїСЂРѕСЃ РґР»СЏ LLM:", "LLM С‡Р°С‚-Р±РѕС‚")
     If Trim(prompt) = "" Then Exit Sub
     
-    ' 2. Добавляем выделенный текст (если есть)
+    ' 2. Р”РѕР±Р°РІР»СЏРµРј РІС‹РґРµР»РµРЅРЅС‹Р№ С‚РµРєСЃС‚ (РµСЃР»Рё РµСЃС‚СЊ)
     If Selection.Type = wdSelectionNormal And Selection.Range.Characters.Count > 0 Then
         selText = Selection.Text
     Else
@@ -48,28 +48,28 @@ Public Sub RunLLMQuery()
     
     If selText <> "" Then
         fullPrompt = prompt & vbCrLf & vbCrLf & _
-                     "Выделенный фрагмент документа:" & vbCrLf & selText
+                     "Р’С‹РґРµР»РµРЅРЅС‹Р№ С„СЂР°РіРјРµРЅС‚ РґРѕРєСѓРјРµРЅС‚Р°:" & vbCrLf & selText
     Else
         fullPrompt = prompt
     End If
     
-    ' 3. Вызов модели
+    ' 3. Р’С‹Р·РѕРІ РјРѕРґРµР»Рё
     ok = CallLLM(fullPrompt, answer)
     If Not ok Then
-        MsgBox "Ошибка при обращении к LLM. Проверьте ключ и параметры API в коде макроса.", vbExclamation
+        MsgBox "РћС€РёР±РєР° РїСЂРё РѕР±СЂР°С‰РµРЅРёРё Рє LLM. РџСЂРѕРІРµСЂСЊС‚Рµ РєР»СЋС‡ Рё РїР°СЂР°РјРµС‚СЂС‹ API РІ РєРѕРґРµ РјР°РєСЂРѕСЃР°.", vbExclamation
         Exit Sub
     End If
     
-    ' 4. Подстановка ответа в документ
+    ' 4. РџРѕРґСЃС‚Р°РЅРѕРІРєР° РѕС‚РІРµС‚Р° РІ РґРѕРєСѓРјРµРЅС‚
     Selection.Range.Text = answer
 End Sub
 
-'==== Показ формы чата ====
+'==== РџРѕРєР°Р· С„РѕСЂРјС‹ С‡Р°С‚Р° ====
 Public Sub RunLLMChat()
     LLM_chat.Show
 End Sub
 
-'==== Вызов LLM через HTTP ====
+'==== Р’С‹Р·РѕРІ LLM С‡РµСЂРµР· HTTP ====
 Public Function CallLLM(ByVal prompt As String, ByRef answer As String) As Boolean
     On Error GoTo ErrHandler
     
@@ -81,20 +81,20 @@ Public Function CallLLM(ByVal prompt As String, ByRef answer As String) As Boole
     
     payload = BuildJsonPayload(prompt)
     
-    ' ServerXMLHTTP avoids the nested COM message-pump problem
-    ' that sync XMLHTTP has — no re-entry into Visio/LLM_chat events.
+    ' ServerXMLHTTP РёР·Р±РµРіР°РµС‚ РїСЂРѕР±Р»РµРјС‹ РІР»РѕР¶РµРЅРЅРѕРіРѕ COM-С†РёРєР»Р° СЃРѕРѕР±С‰РµРЅРёР№,
+    ' РєРѕС‚РѕСЂР°СЏ РµСЃС‚СЊ Сѓ СЃРёРЅС…СЂРѕРЅРЅРѕРіРѕ XMLHTTP вЂ” РЅРµ Р·Р°С…РѕРґРёС‚ РїРѕРІС‚РѕСЂРЅРѕ РІ СЃРѕР±С‹С‚РёСЏ Visio/LLM_chat.
     Set http = CreateObject("MSXML2.ServerXMLHTTP")
     http.Open "POST", LLM_API_URL, True
     http.setRequestHeader "Content-Type", "application/json; charset=utf-8"
     http.setRequestHeader "Authorization", "Bearer " & LLM_API_KEY
     
-    ' Timeouts (ms): resolve, connect, send, receive
+    ' РўР°Р№РјР°СѓС‚С‹ (РјСЃ): resolve, connect, send, receive
     http.setTimeouts 10000, 10000, 30000, 120000
     
-    ' Send payload
+    ' РћС‚РїСЂР°РІР»СЏРµРј С‚РµР»Рѕ Р·Р°РїСЂРѕСЃР°
     http.send payload
     
-    ' Poll readyState without freezing the UI + spinner
+    ' РћРїСЂР°С€РёРІР°РµРј readyState Р±РµР· Р·Р°РјРѕСЂРѕР·РєРё UI + СЃРїРёРЅРЅРµСЂ
     Dim pollCounter As Long
     startTime = Timer
     Do While http.readyState <> 4
@@ -102,7 +102,7 @@ Public Function CallLLM(ByVal prompt As String, ByRef answer As String) As Boole
 '        Debug.Print http.responseText
         pollCounter = pollCounter + 1
         UpdateSpinner pollCounter
-        ' Absolute ceiling — 3 minutes, in case server hangs
+        ' РђР±СЃРѕР»СЋС‚РЅС‹Р№ Р»РёРјРёС‚ вЂ” 3 РјРёРЅСѓС‚С‹, РЅР° СЃР»СѓС‡Р°Р№ Р·Р°РІРёСЃР°РЅРёСЏ СЃРµСЂРІРµСЂР°
         If Timer - startTime > 180 Then
             Debug.Print "CallLLM: timeout (180s)"
             CallLLM = False
@@ -116,7 +116,7 @@ Public Function CallLLM(ByVal prompt As String, ByRef answer As String) As Boole
         Exit Function
     End If
     
-    ' Get Response
+    ' РџРѕР»СѓС‡Р°РµРј РѕС‚РІРµС‚
     responseText = http.responseText
     answer = ExtractContentFromJson(responseText)
     
@@ -130,20 +130,7 @@ End Function
 
 
 
-' Формирование JSON-тела запроса
-'Private Function BuildJsonPayload(ByVal prompt As String) As String
-'    Dim esc As String
-'    esc = JsonEscape(prompt)
-'
-'    ' Формат под ваш API (OpenAI-совместимый)
-'    BuildJsonPayload = _
-'        "{" & _
-'        """model"":""" & LLM_MODEL_ID & """," & _
-'        """messages"":[" & _
-'            "{""role"":""user"",""content"":""" & esc & """}" & _
-'        "]" & _
-'        "}"
-'End Function
+' Р¤РѕСЂРјРёСЂРѕРІР°РЅРёРµ JSON-С‚РµР»Р° Р·Р°РїСЂРѕСЃР°
 Private Function BuildJsonPayload(ByVal prompt As String) As String
     Dim escUser As String
     Dim escSystem As String
@@ -152,7 +139,7 @@ Private Function BuildJsonPayload(ByVal prompt As String) As String
     escUser = JsonEscape(prompt)
     escSystem = JsonEscape(LLM_SYSTEM_PROMPT)
 
-    ' Формируем массв messages, опционально добавляя системный промпт
+    ' Р¤РѕСЂРјРёСЂСѓРµРј РјР°СЃСЃРІ messages, РѕРїС†РёРѕРЅР°Р»СЊРЅРѕ РґРѕР±Р°РІР»СЏСЏ СЃРёСЃС‚РµРјРЅС‹Р№ РїСЂРѕРјРїС‚
     If Trim(LLM_SYSTEM_PROMPT) <> "" Then
         messagesJson = _
             "{""role"":""system"",""content"":""" & escSystem & """}," & _
@@ -162,7 +149,7 @@ Private Function BuildJsonPayload(ByVal prompt As String) As String
             "{""role"":""user"",""content"":""" & escUser & """}"
     End If
 
-    ' Формат под ваш API (OpenAI-совместимый)
+    ' Р¤РѕСЂРјР°С‚ РїРѕРґ РІР°С€ API (OpenAI-СЃРѕРІРјРµСЃС‚РёРјС‹Р№)
     BuildJsonPayload = _
         "{" & _
         """model"":""" & LLM_MODEL_ID & """," & _
@@ -170,7 +157,7 @@ Private Function BuildJsonPayload(ByVal prompt As String) As String
         "}"
 End Function
 
-' Простейший экранировщик для JSON-строки
+' РџСЂРѕСЃС‚РµР№С€РёР№ СЌРєСЂР°РЅРёСЂРѕРІС‰РёРє РґР»СЏ JSON-СЃС‚СЂРѕРєРё
 Private Function JsonEscape(ByVal s As String) As String
     s = Replace(s, "\", "\\")
     s = Replace(s, Chr(34), "\" & Chr(34))
@@ -179,7 +166,7 @@ Private Function JsonEscape(ByVal s As String) As String
     s = Replace(s, vbCr, "\r")
     s = Replace(s, vbLf, "\n")
     s = Replace(s, vbTab, "\t")
-    ' Удаляем остальные управляющие символы (ASCII 0–31, кроме вышеперечисленных)
+    ' РЈРґР°Р»СЏРµРј РѕСЃС‚Р°Р»СЊРЅС‹Рµ СѓРїСЂР°РІР»СЏСЋС‰РёРµ СЃРёРјРІРѕР»С‹ (ASCII 0вЂ“31, РєСЂРѕРјРµ РІС‹С€РµРїРµСЂРµС‡РёСЃР»РµРЅРЅС‹С…)
     Dim i As Long
     For i = 0 To 31
         If InStr(s, Chr(i)) > 0 Then
@@ -189,13 +176,13 @@ Private Function JsonEscape(ByVal s As String) As String
     JsonEscape = s
 End Function
 
-' ==== Разбор JSON-ответа ====
-' Ожидаем структуру как в вашем примере:
+' ==== Р Р°Р·Р±РѕСЂ JSON-РѕС‚РІРµС‚Р° ====
+' РћР¶РёРґР°РµРј СЃС‚СЂСѓРєС‚СѓСЂСѓ РєР°Рє РІ РїСЂРёРјРµСЂРµ:
 ' {
 '   "choices":[
 '     {
 '       "message":{
-'         "content":"...текст ответа..."
+'         "content":"...С‚РµРєСЃС‚ РѕС‚РІРµС‚Р°..."
 '       }
 '     }
 '   ]
@@ -208,7 +195,7 @@ Private Function ExtractContentFromJson(ByVal json As String) As String
     Dim endPos As Long
     Dim tmp As String
     
-    ' 1. Находим блок "message":{"role":...,"content":"..."}
+    ' 1. РќР°С…РѕРґРёРј Р±Р»РѕРє "message":{"role":...,"content":"..."}
     key = """message"":{"
     pos = InStr(1, json, key, vbTextCompare)
     If pos = 0 Then
@@ -216,10 +203,10 @@ Private Function ExtractContentFromJson(ByVal json As String) As String
         Exit Function
     End If
     
-    ' 2. Отрезаем всё до "message":{, чтобы сократить строку
+    ' 2. РћС‚СЂРµР·Р°РµРј РІСЃС‘ РґРѕ "message":{, С‡С‚РѕР±С‹ СЃРѕРєСЂР°С‚РёС‚СЊ СЃС‚СЂРѕРєСѓ
     tmp = Mid$(json, pos + Len(key))
     
-    ' 3. Внутри этого блока ищем "content":"..."
+    ' 3. Р’РЅСѓС‚СЂРё СЌС‚РѕРіРѕ Р±Р»РѕРєР° РёС‰РµРј "content":"..."
     key = """content"":"""
     pos = InStr(1, tmp, key, vbTextCompare)
     If pos = 0 Then
@@ -230,10 +217,10 @@ Private Function ExtractContentFromJson(ByVal json As String) As String
     startPos = pos + Len(key)
     endPos = startPos
     
-    ' 4. Ищем завершающую кавычку, учитывая возможные экранированные \"
+    ' 4. РС‰РµРј Р·Р°РІРµСЂС€Р°СЋС‰СѓСЋ РєР°РІС‹С‡РєСѓ, СѓС‡РёС‚С‹РІР°СЏ РІРѕР·РјРѕР¶РЅС‹Рµ СЌРєСЂР°РЅРёСЂРѕРІР°РЅРЅС‹Рµ \"
     Do While endPos <= Len(tmp)
         If Mid$(tmp, endPos, 1) = """" Then
-            ' Проверяем, не экранирована ли кавычка
+            ' РџСЂРѕРІРµСЂСЏРµРј, РЅРµ СЌРєСЂР°РЅРёСЂРѕРІР°РЅР° Р»Рё РєР°РІС‹С‡РєР°
             If Mid$(tmp, endPos - 1, 1) <> "\" Then
                 Exit Do
             End If
@@ -249,7 +236,7 @@ Private Function ExtractContentFromJson(ByVal json As String) As String
     ExtractContentFromJson = JsonUnescape(Mid$(tmp, startPos, endPos - startPos))
 End Function
 
-' Обратное преобразование для \n, \" и \\
+' РћР±СЂР°С‚РЅРѕРµ РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ РґР»СЏ \n, \" Рё \\
 Private Function JsonUnescape(ByVal s As String) As String
     ' \\ -> \
     s = Replace(s, "\\", Chr(92))
@@ -281,8 +268,8 @@ End Sub
 
 
 
-'==== Работа с данными настроек ====
-' Чтение настроек из реестра
+'==== Р Р°Р±РѕС‚Р° СЃ РґР°РЅРЅС‹РјРё РЅР°СЃС‚СЂРѕРµРє ====
+' Р§С‚РµРЅРёРµ РЅР°СЃС‚СЂРѕРµРє РёР· СЂРµРµСЃС‚СЂР°
 Public Sub InitLLMSettings()
     On Error Resume Next
     LLM_API_URL = CStr(GetSettingFromRegistry(REG_LLM_API_URL, "https://api.aitunnel.ru/v1/chat/completions"))
@@ -292,7 +279,7 @@ Public Sub InitLLMSettings()
     On Error GoTo 0
 End Sub
 
-' Универсальное чтение значения (если нет - возвращает defaultValue)
+' РЈРЅРёРІРµСЂСЃР°Р»СЊРЅРѕРµ С‡С‚РµРЅРёРµ Р·РЅР°С‡РµРЅРёСЏ (РµСЃР»Рё РЅРµС‚ - РІРѕР·РІСЂР°С‰Р°РµС‚ defaultValue)
 Private Function GetSettingFromRegistry(ByVal fullKey As String, ByVal defaultValue As String) As String
     Dim shell As Object
     Dim val As Variant
@@ -309,7 +296,7 @@ Private Function GetSettingFromRegistry(ByVal fullKey As String, ByVal defaultVa
     On Error GoTo 0
 End Function
 
-' Универсальная запись значения в реестр (строка, REG_SZ)
+' РЈРЅРёРІРµСЂСЃР°Р»СЊРЅР°СЏ Р·Р°РїРёСЃСЊ Р·РЅР°С‡РµРЅРёСЏ РІ СЂРµРµСЃС‚СЂ (СЃС‚СЂРѕРєР°, REG_SZ)
 Private Sub SaveSettingToRegistry(ByVal fullKey As String, ByVal value As String)
     Dim shell As Object
     Set shell = CreateObject("WScript.Shell")
@@ -318,56 +305,56 @@ End Sub
 
 
 
-' ==== Настройка параметров LLM через диалоги ====
-' Основная функция конфигурации: спрашивает у пользователя значения и
-' записывает их в реестр HKCU\Software\LLMWordMacro
+' ==== РќР°СЃС‚СЂРѕР№РєР° РїР°СЂР°РјРµС‚СЂРѕРІ LLM С‡РµСЂРµР· РґРёР°Р»РѕРіРё ====
+' РћСЃРЅРѕРІРЅР°СЏ С„СѓРЅРєС†РёСЏ РєРѕРЅС„РёРіСѓСЂР°С†РёРё: СЃРїСЂР°С€РёРІР°РµС‚ Сѓ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ Р·РЅР°С‡РµРЅРёСЏ Рё
+' Р·Р°РїРёСЃС‹РІР°РµС‚ РёС… РІ СЂРµРµСЃС‚СЂ HKCU\Software\LLMWordMacro
 Public Sub ConfigureLLMSettings()
     Dim url As String
     Dim modelId As String
     Dim apiKey As String
     Dim sysPrompt As String
 
-    ' текущие значения (если уже заданы)
+    ' С‚РµРєСѓС‰РёРµ Р·РЅР°С‡РµРЅРёСЏ (РµСЃР»Рё СѓР¶Рµ Р·Р°РґР°РЅС‹)
     InitLLMSettings
 
     url = InputBox( _
-        prompt:="Введите URL API LLM (например, https://api.openai.com/v1/chat/completions):", _
-        Title:="Настройка LLM_API_URL", _
+        prompt:="Р’РІРµРґРёС‚Рµ URL API LLM (РЅР°РїСЂРёРјРµСЂ, https://api.openai.com/v1/chat/completions):", _
+        Title:="РќР°СЃС‚СЂРѕР№РєР° LLM_API_URL", _
         Default:=IIf(LLM_API_URL <> "", LLM_API_URL, "https://api.openai.com/v1/chat/completions") _
     )
     If url = "" Then Exit Sub
 
     modelId = InputBox( _
-        prompt:="Введите идентификатор модели (например, gpt-5.1):", _
-        Title:="Настройка LLM_MODEL_ID", _
+        prompt:="Р’РІРµРґРёС‚Рµ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РјРѕРґРµР»Рё (РЅР°РїСЂРёРјРµСЂ, gpt-5.1):", _
+        Title:="РќР°СЃС‚СЂРѕР№РєР° LLM_MODEL_ID", _
         Default:=IIf(LLM_MODEL_ID <> "", LLM_MODEL_ID, "gpt-5.1") _
     )
     If modelId = "" Then Exit Sub
 
     apiKey = InputBox( _
-        prompt:="Введите API-ключ (Bearer токен) для LLM:", _
-        Title:="Настройка LLM_API_KEY", _
+        prompt:="Р’РІРµРґРёС‚Рµ API-РєР»СЋС‡ (Bearer С‚РѕРєРµРЅ) РґР»СЏ LLM:", _
+        Title:="РќР°СЃС‚СЂРѕР№РєР° LLM_API_KEY", _
         Default:=LLM_API_KEY _
     )
     If apiKey = "" Then Exit Sub
 
     sysPrompt = InputBox( _
-        prompt:="Введите системный промпт (необязательно). Он будет отправляться как роль system перед сообщением пользователя.", _
-        Title:="Настройка LLM_SYSTEM_PROMPT", _
+        prompt:="Р’РІРµРґРёС‚Рµ СЃРёСЃС‚РµРјРЅС‹Р№ РїСЂРѕРјРїС‚ (РЅРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ). РћРЅ Р±СѓРґРµС‚ РѕС‚РїСЂР°РІР»СЏС‚СЊСЃСЏ РєР°Рє СЂРѕР»СЊ system РїРµСЂРµРґ СЃРѕРѕР±С‰РµРЅРёРµРј РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ.", _
+        Title:="РќР°СЃС‚СЂРѕР№РєР° LLM_SYSTEM_PROMPT", _
         Default:=LLM_SYSTEM_PROMPT _
     )
-    ' sysPrompt может быть пустым — это допустимо
+    ' sysPrompt РјРѕР¶РµС‚ Р±С‹С‚СЊ РїСѓСЃС‚С‹Рј вЂ” СЌС‚Рѕ РґРѕРїСѓСЃС‚РёРјРѕ
 
-    ' сохраняем в реестр текущего пользователя
+    ' СЃРѕС…СЂР°РЅСЏРµРј РІ СЂРµРµСЃС‚СЂ С‚РµРєСѓС‰РµРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
     SaveSettingToRegistry REG_LLM_API_URL, url
     SaveSettingToRegistry REG_LLM_MODEL_ID, modelId
     SaveSettingToRegistry REG_LLM_API_KEY, apiKey
     SaveSettingToRegistry REG_LLM_SYSTEM_PROMPT, sysPrompt
 
-    ' сразу обновляем внутренние переменные
+    ' СЃСЂР°Р·Сѓ РѕР±РЅРѕРІР»СЏРµРј РІРЅСѓС‚СЂРµРЅРЅРёРµ РїРµСЂРµРјРµРЅРЅС‹Рµ
     InitLLMSettings
 
-    MsgBox "Настройки LLM сохранены в реестре:" & vbCrLf & _
+    MsgBox "РќР°СЃС‚СЂРѕР№РєРё LLM СЃРѕС…СЂР°РЅРµРЅС‹ РІ СЂРµРµСЃС‚СЂРµ:" & vbCrLf & _
            "HKCU\Software\LLMWordMacro\" & vbCrLf & _
            "LLM_API_URL, LLM_MODEL_ID, LLM_API_KEY, LLM_SYSTEM_PROMPT", _
            vbInformation
