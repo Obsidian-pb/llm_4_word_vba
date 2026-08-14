@@ -26,6 +26,10 @@ Private Sub CB_Close_Click()
     Me.Hide
 End Sub
 
+Private Sub CB_InsertComment_Click()
+    ActiveDocument.Comments.Add Range:=Selection.Range, Text:=answer
+End Sub
+
 Private Sub CB_InsertLast_Click()
     Selection.Range.Text = answer
 End Sub
