@@ -30,7 +30,7 @@ Public Sub Init()
     Set toolInstance = New clsTool_InsertComment
     tools.Add toolInstance, toolInstance.name
     ' Read selected text
-    Set toolInstance = New clsTool_ReadSelectedText
+    Set toolInstance = New clsTool_ReadText
     tools.Add toolInstance, toolInstance.name
     ' Write text file. Temporary off
 '    Set toolInstance = New clsTool_WriteTextFile

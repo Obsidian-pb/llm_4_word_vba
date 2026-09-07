@@ -1,7 +1,7 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} LLM_chat_html 
    Caption         =   "UserForm1"
-   ClientHeight    =   9615.001
+   ClientHeight    =   9615
    ClientLeft      =   45
    ClientTop       =   390
    ClientWidth     =   11055
