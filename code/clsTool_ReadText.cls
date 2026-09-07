@@ -52,6 +52,10 @@ Private Function clsToolBase_Execute(ByVal argsJson As String) As String
     Dim SelEnd As Long
     
     If Not start_pos_s = "" And Not end_pos_s = "" Then
+        SelStart = CLng(start_pos_s)
+        SelEnd = CLng(end_pos_s)
+        SelText = ActiveDocument.Range(SelStart, SelEnd).text
+    Else
         If Selection.Type = wdSelectionNormal And Selection.Range.Characters.Count > 0 Then
             SelText = Selection.text
             SelStart = Selection.Start
@@ -59,10 +63,6 @@ Private Function clsToolBase_Execute(ByVal argsJson As String) As String
         Else
             SelText = ""
         End If
-    Else
-        SelStart = CLng(start_pos_s)
-        SelEnd = CLng(end_pos_s)
-        SelText = ActiveDocument.Range(SelStart, SelEnd).text
     End If
     
 
