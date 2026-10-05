@@ -51,7 +51,7 @@ Private Function clsToolBase_Execute(ByVal argsJson As String) As String
     Dim SelStart As Long
     Dim SelEnd As Long
     
-    If Not start_pos_s = "" And Not end_pos_s = "" Then
+    If Not ((start_pos_s = "" And end_pos_s = "") Or (start_pos_s = "0" And end_pos_s = "0")) Then
         SelStart = CLng(start_pos_s)
         SelEnd = CLng(end_pos_s)
         SelText = ActiveDocument.Range(SelStart, SelEnd).text

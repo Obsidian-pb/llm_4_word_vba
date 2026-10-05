@@ -12,10 +12,10 @@ Option Explicit
 
 
 
-Public Sub ShowChat()
+Public Sub ShowChat(control As IRibbonControl)
     LLM_chat_html.Show
 End Sub
 
-Public Sub ShowSettings()
+Public Sub ShowSettings(control As IRibbonControl)
     LLM_config.Show
 End Sub
